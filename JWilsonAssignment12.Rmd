@@ -1,0 +1,110 @@
+---
+title: "DATA605 Assignment 12"
+author: "Javern Wilson"
+date: "11/12/2019"
+output: 
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+    theme: united
+---
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+```
+
+
+The attached who.csv dataset contains real-world data from 2008.  The variables included follow. 
+ 
+**Country:**  name of the country 
+
+**LifeExp:**  average life expectancy for the country in years 
+
+**InfantSurvival:**  proportion of those surviving to one year or more 
+
+**Under5Survival:**  proportion of those surviving to five years or more
+
+**TBFree:**  proportion of the population without TB. 
+
+**PropMD:**  proportion of the population who are MDs 
+
+**PropRN:**  proportion of the population who are RNs 
+
+**PersExp:**  mean personal expenditures on healthcare in US dollars at average exchange rate 
+
+**GovtExp:**  mean government expenditures per capita on healthcare, US dollars at average exchange rate 
+
+**TotExp:**  sum of personal and government expenditures. 
+ 
+ 
+## Task 1
+
+Provide a scatterplot of $LifeExp$ ~ $TotExp$, and run simple linear regression.  Do not transform the  variables.  Provide and interpret the F statistics, R^2, standard error ,and p-values only.  Discuss whether the assumptions of simple linear regression met. 
+ 
+ 
+```{r}
+
+who <- read.csv("who.csv", sep = ',')
+ggplot(who, aes(x = TotExp, y = LifeExp)) + geom_point() + geom_smooth(method = lm, se=F)
+lete.lm <- lm(LifeExp ~ TotExp, data = who)
+summary(lete.lm)
+```
+
+The `F-statistic`, which is relatively large at `65.26`, give a clear indication that there is a relationship between Total Expenditure and Life Expectancy. As for the `standard error`, the actual Life Expectancy can deviate from the true regression line by approximately 15.3795867 on average.  According to the `R^2`, the model only  accounts for `25.77%` of the variance while the `p-value` is very small making the model significant.
+
+
+## Task 2
+
+Raise life expectancy to the `4.6` power (i.e., $LifeExp^{4.6}$).  Raise total expenditures to the 0.06 power (nearly a log transform, $TotExp^{.06}$). Plot $LifeExp^{4.6}$  as a function of $TotExp^{.06}$, and re-run the simple regression model using the transformed variables.  Provide and interpret the F statistics, R^2, standard error, and p-values.   Which model is "better?" 
+
+```{r}
+LifeExp2 <- who$LifeExp^4.6
+TotExp2 <- who$TotExp^0.06
+lete_df <- as.data.frame(cbind(LifeExp2, TotExp2))
+ggplot(lete_df, aes(x = TotExp2, y = LifeExp2)) + geom_point() + geom_smooth(method = lm, se=F)
+lete2.lm <- lm(LifeExp2 ~ TotExp2, lete_df)
+summary(lete2.lm)
+```
+
+The `F-statistic`is very much larger at `507.7`, give a clear indication of a stronger relationship between the two variables. As for the `standard error`, the actual Life Expectancy can deviate from the true regression line by approximately 90490000 on average. This is very high. According to the `R^2`, the model explains the `72.98%` of the variance in Life Expectancy which is much better than the previous model. The `p-value` is smaller which makes the model even more significant.
+ 
+
+## Task 3
+
+Using the results from 2, forecast life expectancy when $TotExp^{.06} =1.5$.  Then forecast life expectancy when $TotExp^{.06}=2.5$.   
+
+From the second model, the formula is $LifeExp = -736527910 + 620060216 \times TotExp$
+```{r}
+# Data has to be tramsformed 
+lifeexp1 <- -736527910 + 620060216 * 1.5
+lifeexp1 ^ (1/4.6)
+lifeexp2 <- -736527910 + 620060216 * 2.5
+lifeexp2 ^ (1/4.6)
+```
+
+
+## Task 4
+
+Build the following multiple regression model and interpret the F Statistics, R^2, standard error, and p-values.  How good is the model? 
+ 
+$$LifeExp = b0 + b1 \times PropMd + b2 \times TotExp + b3 \times PropMD \times TotExp$$
+
+```{r}
+lm3 <- lm(LifeExp ~ PropMD + TotExp + PropMD * TotExp, data = who)
+summary(lm3)
+
+```
+ 
+
+## Task 5
+ 
+Forecast $LifeExp$ when $PropMD =.03$ and $TotExp = 14$.  Does this forecast seem realistic?  Why or why not? 
+
+```{r}
+62.77 + (1497 * 0.03) + (0.00007233 * 14) - (0.006026 * (0.03 * 14))
+
+```
+
+No, this model is not realistic considering the age being `107` years. Based on the second model we saw that as Total Expenditure increases, so does Life Expectancy. 107 with 14 makes it seem impossible.

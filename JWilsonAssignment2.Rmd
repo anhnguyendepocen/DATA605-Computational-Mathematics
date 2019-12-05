@@ -1,0 +1,204 @@
+---
+title: "DATA605 Wk2Assignment2"
+author: "Javern Wilson"
+date: "9/7/2019"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+
+### (1) Show that $A^TA \neq AA^T$ in general. (Proof and demonstration.) 
+
+Let Matrix A be $$ \mathbf{A} = \left[\begin{array}
+{rrr}
+a & r\\
+b & s
+\end{array}\right]$$ 
+
+and
+
+$$\mathbf{A^T} = \left[\begin{array} {rrr} a & b\\ r & s\end{array}\right]$$ 
+Proof:
+
+$$\mathbf{A^TA} = \left[\begin{array}
+{rrr}
+a \times a + b \times b & a \times r + b \times s\\ 
+r \times a + s \times b & r \times r + s \times s
+\end{array}\right]$$
+
+$$\mathbf{A^TA} = \left[\begin{array}
+{rrr}
+a^2 + b^2 & ar + bs\\ 
+ra + sb & r^2 + s^2
+\end{array}\right]$$
+
+$$\mathbf{AA^T} = \left[\begin{array}
+{rrr}
+a \times a + r \times r & a \times b + r \times s\\ 
+b \times a + s \times r & b \times b + s \times s
+\end{array}\right]$$
+
+$$\mathbf{AA^T} = \left[\begin{array}
+{rrr}
+a^2 + r^2 & ab + rs\\ 
+ab + sr & b^2 + s^2
+\end{array}\right]$$
+
+
+Therefore $A^TA \neq AA^T$.
+
+For example:
+
+*A*
+```{r}
+
+A = matrix(c(1, -2, 4, -3), 2, 2, byrow = T)
+A
+
+
+```
+
+*A Transpose*
+```{r}
+TA = t(A)
+TA
+
+```
+
+*A multiplied by A Transpose*
+```{r}
+
+A %*% TA
+```
+
+
+*A Transpose multiplied by A*
+```{r}
+TA %*% A
+```
+
+
+
+### (2) For a special type of square matrix A, we get $A^TA = AA^T$ . Under what conditions could this be true? (Hint: The Identity matrix I is an example of such a matrix). 
+
+Conditions:
+
+A matrix is considered symmetric if it is equal to it's transpose.
+If $A$ is symmetric then $A = A^T$ so $A^TA$ should be the same as $AA^T$
+
+Proof using rhs
+
+$$AA^T = (AA^T)^T\\$$
+
+$$ = A^T(A^T){^T}\\$$
+
+$$ = A^TA$$
+
+---
+
+A
+```{r}
+
+A <- matrix(c(3, 2, 4, 2, 6, 2, 4, 2 ,3), 3, 3, byrow = T)
+A
+
+
+```
+
+*A Transpose*
+```{r}
+
+TA <- t(A)
+TA
+
+
+```
+
+*A multiplied by A Transpose* -> $AA^T$
+```{r}
+
+A %*% TA
+
+```
+
+*A Transpose multiplied by A* -> $A^TA$
+
+```{r}
+
+TA %*% A
+
+```
+
+Transpose of $AA^T$ rhs
+```{r}
+t(A %*% TA)
+
+```
+
+
+
+### Write an R function to factorize a square matrix A into LU or LDU, whichever you prefer. 
+
+```{r}
+LU_D <- function(M){
+
+  m <- dim(M)
+  if (m[1] != m[2]){
+    print("This is not a square matrix!")
+  }
+  
+  U <- matrix( 0, nrow = nrow(M), ncol=nrow(M) )
+  L <- diag(3)
+  for(i in 1 : nrow(M)) {
+    p1 <- i+1
+    m1 <- i-1
+    for (j in 1:nrow(M)){
+      U[i, j] <- M[i,j]
+        if ( m1 > 0 ) {
+          for ( k in 1:m1 ) {
+            U[i,j] <- U[i,j] - L[i,k] * U[k,j]
+          }
+        }
+      }
+    
+  if ( p1 <= nrow(M) ) {
+    for ( j in p1:nrow(M) ) {
+      L[j,i] <- M[j,i]
+      if ( m1 > 0 ) {
+        for ( k in 1:m1 ) {
+          L[j,i] <- L[j,i] - L[j,k] * U[k,i]
+        }
+      }
+      L[j,i] <- L[j,i] / U[i,i]
+    }
+  }
+  }
+  
+  output <- list(L=L, U=U)
+  return(output)
+}
+
+```
+
+
+Test function
+```{r}
+
+D <- matrix(c(1, 4, -3, -2, 8, 5, 3, 4, 7), 3, 3, byrow = T)
+E <- matrix(c(2, 4, -4, 1, -4, 3, -6, -9, 5), 3, 3, byrow = T)
+
+LU_D(D)
+LU_D(E)
+```
+
+
+Helpful Links:
+
+  +[LU Decomposition - Shortcut Method](https://www.youtube.com/watch?v=UlWcofkUDDU)
+  
+  +[Trackable R function for LU factorization
+](https://stackoverflow.com/questions/51687808/write-a-trackable-r-function-that-mimics-lapacks-dgetrf-for-lu-factorization)
+
+  +[The LU Decomposition of a Matrix Examples 1](http://mathonline.wikidot.com/the-lu-decomposition-of-a-matrix-examples-1)

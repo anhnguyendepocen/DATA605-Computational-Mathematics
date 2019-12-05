@@ -1,0 +1,160 @@
+---
+title: 'DATA605 Wk1 Assignment1: Vectors / Matrices / Systems of Equation'
+author: "Javern Wilson"
+date: "8/30/2019"
+output: html_document
+---
+
+### Problem Set 1
+
+#### You can think of vectors representing many dimensions of related information. For instance, Netﬂix might store all the ratings a user gives to movies in a vector. This is clearly a vector of very large dimensions (in the millions) and very sparse as the user might have rated only a few movies. Similarly, Amazon might store the items purchased by a user in a vector, with each slot or dimension representing a unique product and the value of the slot, the number of such items the user bought. One task that is frequently done in these settings is to ﬁnd similarities between users. And, we can use dot-product between vectors to do just that. As you know, the dot-product is proportional to the length of two vectors and to the angle between them. In fact, the dot-product between two vectors, normalized by their lengths is called as the cosine distance and is frequently used in recommendation engines. 
+
+##### (1) Calculate the dot product $u.v$ where 
+$$\mathbf{u} = \left[\begin{array}
+{rrr}
+0.5\\
+0.5
+\end{array}\right]
+$$
+and $$\mathbf{v} = \left[\begin{array}
+{rrr}
+3\\
+-4
+\end{array}\right]
+$$
+
+
+```{r}
+
+u <- c(0.5, 0.5)
+v <- c(3, -4)
+dot_product <- u%*%v
+dot_product
+
+```
+
+##### (2) What are the lengths of $u$ and $v$? Please note that the mathematical notion of the length of a vector is not the same as a computer science deﬁnition. 
+
+
+```{r}
+u_magnitude <- sqrt(u[1]^2 + u[2]^2)
+u_magnitude
+
+v_magnitude <- sqrt(v[1]^2 + v[2]^2)
+v_magnitude
+```
+
+
+##### (3) What is the linear combination: $3u−2v$? 
+
+```{r}
+
+3*u - 2*v
+
+```
+
+
+##### (4) What is the angle between $u$ and $v$?
+
+$$cos \theta = \frac{\overline{u}.\overline{v}}{||\overline u|| . ||\overline v||}$$
+
+
+```{r}
+
+cos_theta <- dot_product / (u_magnitude * v_magnitude)
+cos_theta
+angle <- acos(cos_theta) #inverse cosine to get theta
+angle #in radians
+
+angle2 <- (180 * angle) / pi
+angle2 # in degrees
+
+```
+
+### 2. Problem set 2
+
+#### Set up a system of equations with 3 variables and 3 constraints and solve for x. Please write a function in R that will take two variables (matrix A & constraint vector b) and solve using elimination. Your function should produce the right answer for the system of equations for any 3-variable, 3-equation system. You don’t have to worry about degenerate cases and can safely assume that the function will only be tested with a system of equations that has a solution. Please note that you do have to worry about zero pivots, though. Please note that you should not use the built-in function solve to solve this system or use matrix inverses. The approach that you should employ is to construct an Upper Triangular Matrix and then back-substitute to get the solution. Alternatively, you can augment the matrix A with vector b and jointly apply the Gauss Jordan elimination procedure. 
+
+For assistance [Rosetta Code](https://rosettacode.org/wiki/Reduced_row_echelon_form#R) [and](https://jameshoward.us/2015/04/20/matrix-row-echelon-form-in-r/) [Stackoverflow](https://stackoverflow.com/questions/16044377/how-to-do-gaussian-elimination-in-r-do-not-use-solve) was used.
+
+Gaussian Elimination
+```{r}
+
+gauss_elim <- function(mat) {
+  row_count <- nrow(mat)
+  col_count <- ncol(mat)
+  pivot <- 1
+  
+  for(curr_row in 1:row_count) {
+    if(col_count > pivot) {
+      i <- curr_row
+      while(mat[i, pivot] == 0) {
+        i <- i + 1
+        if(row_count == i) {
+          i <- curr_row
+          pivot <- pivot + 1
+          if(col_count == pivot)
+            return(mat)
+        }
+      }
+      mat <- swapRows(mat, curr_row, i)
+      for(j in curr_row:row_count)
+        if(j != curr_row) {
+          p <- mat[j, pivot] / mat[curr_row, pivot]
+          mat <- replaceRow(mat, curr_row, j, p)
+          }
+      pivot <- pivot + 1
+    }
+  }
+  return(mat)
+}
+```
+
+
+Function to swap rows
+```{r}
+
+swapRows <- function(mat, r1, r2) {
+  tmpr <- mat[r1,]
+  mat[r1,] <- mat[r2,]
+  mat[r2,] <- tmpr
+  return(mat)
+}
+```
+
+Function to replace rows after elimination
+```{r}
+replaceRow <- function(mat, r1, r2, p) {
+    mat[r2,] <- mat[r2,] - mat[r1,] * p
+    return(mat)
+}
+```
+
+
+##### Please test it with the system below and it should produce a solution $x = [−1.55,−0.32,0.95]$ 
+
+$$\left[\begin{array} 
+{rrr} 
+1 & 1 & 3\\
+2 & -1 & 5\\
+-1 & -2 & 4
+\end{array}\right] = \left[\begin{array} {rrr} x_{1}\\ x_{2}\\ x_{3} \end{array}\right] = \left[\begin{array} {rrr} 1\\ 2\\  6 \end{array}\right]
+$$
+
+```{r}
+A <- matrix(c(1, 1, 3,
+               2, -1, 5,
+               -1, -2, 4), 3, 3, byrow=T)
+b <- matrix(c(1, 2, 6), 3, 1, byrow = T)
+aug_A <- cbind(A, b)
+final_A <- gauss_elim(aug_A)
+final_A # final product
+
+#Substitutions
+x3 <- final_A[3,4] / final_A[3,3]
+x2 <- (final_A[2,4] - (final_A[2,3] * x3)) / final_A[2, 2]
+x1 <- final_A[1,4] - ((final_A[1,2] * x2) + (final_A[1,3] * x3)) / final_A[1,1]
+
+  
+cat("Solutions:", "\n x1 -> ", round(x1, 2), "\t\t\n", "x2 -> ", round(x2, 2), "\t\t\n", "x3 -> ", round(x3, 2))
+```

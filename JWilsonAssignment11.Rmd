@@ -1,0 +1,95 @@
+---
+title: "DATA605 Wk11 Assignment 11"
+author: "Javern Wilson"
+date: "11/6/2019"
+output: 
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+    theme: united
+---
+
+#### Using the “cars” dataset in R, build a linear model for stopping distance as a function of speed and replicate the analysis of your textbook chapter 3 (visualization, quality evaluation of the model, and residual analysis.) 
+
+```{r warning=TRUE, include=FALSE}
+library(tidyverse)
+library(datasets)
+library(broom)
+```
+
+### Cars Dataset
+
+```{r}
+head(cars)
+
+```
+
+
+### Scatterplot
+
+```{r}
+ggplot(cars, aes(x=speed, y=dist)) + geom_point() + ggtitle('Speed vs Stopping Distance')
+
+```
+
+Here (by the eye) you can see that some activity is going on between the two variables. The points are not close, nor are they far from each other but there is some association here. Let's have a look at the linear model to see what is happening. 
+
+
+### The Linear Model
+
+```{r}
+# x = speed, y = dist
+cars_lm <- lm(dist ~ speed, data = cars)
+
+ggplot(cars, aes(x=speed, y=dist)) + geom_point() + geom_smooth(method=lm, se=F) +  
+  ggtitle(label = "Speed vs Stopping Distance with Regression Line", subtitle = paste("R^2 = ",signif(summary(cars_lm)$r.squared, 5),
+                     "Intercept =",signif(cars_lm$coefficients[[1]],5 ),
+                     " Slope =",signif(cars_lm$coefficients[[2]], 5),
+                     " P =",signif(summary(cars_lm)$coefficients[2,4], 5)))
+
+```
+
+As suspected, there is a positive linear pattern. This means that there is a positive association between the `stopping distance` and `speed`. To confirm this, knowing that $R^2 = 0.65108$, then $R = 0.807$ which indicates a strong correlation between the response (`dist`) and explanatory variable(`speed`).
+
+### Evaluating the quality of the model
+
+```{r}
+summary(cars_lm)
+```
+
+The formula for the model is $$\hat{y} = -17.5791 + 3.9324  * speed$$
+
+Basically, the distance increases by 3.9324 when the speed increases by 1 and is predicted to be -17.5791 when speed is zero.
+
+The size of the P-value being very small confirms that the correlation is statistically significant which agrees with the fact that this model fits the data.
+
+The model also explains `65.11`% of the variation according to $R^2$.
+
+
+### Residual Analysis
+```{r}
+carslm_df <- augment(cars_lm)
+ggplot(carslm_df, aes(x = .fitted, y = .resid)) + geom_point() + geom_hline(yintercept=0, color = 'orange') + ggtitle('Residual vs Fitted')
+
+```
+
+The plot shows a random pattern, indicating a good fit for a linear model. 
+
+```{r}
+ggplot(carslm_df, aes(x=.std.resid)) + geom_histogram(aes(y=..density..), bins = 10 ,colour="black")+
+ geom_density(alpha=.2, fill="blue") + ggtitle('Histogram of Residuals')
+```
+Histograms seems nearly normal based on the symmetric or bell shape curve.
+
+```{r}
+qplot(sample =.std.resid, data = carslm_df) + geom_abline()+ ggtitle('Normal Q-Q Plot')
+```
+
+The normal probability plot shows a strong linear pattern. There are only minor deviations from the line fit to the points on the probability plot. The normal distribution appears to be a good model for this data.
+
+
+### Conclusion
+
+The correlation between stopping distance and speed is positive and the relationship is linear. Also the residuals are distributed normally. There may be a few outliers but they are not that far out from the rest of the data points. This model created seems to be great fit for the data where the data is distributed normally.

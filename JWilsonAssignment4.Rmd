@@ -1,0 +1,177 @@
+---
+title: "DATA605Wk4 Assignment4"
+author: "Javern Wilson"
+date: "9/16/2019"
+output: html_document
+---
+
+### Problem Set 1
+
+```{r message=TRUE, warning=TRUE, include=FALSE}
+library(matrixcalc)
+library(matlib)
+```
+
+
+### Given a 3×2 matrix A $$\begin{bmatrix}1&2&3\\-1&0&4\end{bmatrix}$$
+
+
+#### Write code in R to compute $X = AA^T$ and $Y = A^TA$
+
+```{r}
+
+A <- matrix(c(1, 2, 3, -1, 0, 4), 2, 3, byrow = T)
+
+X <- A %*% t(A); X
+Y <- t(A) %*% A; Y
+
+```
+
+
+#### Compute the eigenvalues and eigenvectors of X and Y using the built-in commands in R. 
+
+```{r}
+eigen_X <-eigen(X)
+eigen_X
+eigen_Y <- eigen(Y)
+eigen_Y
+
+```
+
+
+#### Compute for A using the *SVD* command:
+
+<br/><br/>
+
+**Left-singular Vectors**
+
+```{r}
+U <- svd(A)$u
+U
+```
+
+
+**Singular Values** 
+
+```{r}
+sigma <- svd(A)$d
+sigma
+```
+
+
+**Right-singular Vectors** 
+
+```{r}
+V <- svd(A)$v
+V
+```
+
+#### Examine the two sets of singular vectors and show that they are indeed eigenvectors of $X$ and $Y$
+
+*N.B* We see that the output for all vectors are the same but with some sign changes. The eigenvectors are scaled by −1. 
+
+```{r}
+left <- list(x = eigen_X$vectors, u=U)
+left
+```
+
+```{r}
+
+right <- list(y = eigen_Y$vectors[,1:2], vt=V)
+right
+
+```
+
+
+Show that the two non-zero eigenvalues (the 3rd value will be very close to zero, if not zero) of both $X$ and $Y$ are the same and are squares of the non-zero singular values of A. 
+
+```{r}
+eigen_X$values[1:2]
+round(eigen_Y$values[1:2],6)
+```
+
+```{r}
+list(eigenx_values = eigen_X$values, eigeny_values = eigen_Y$values[1:2], svd_sing_values = sigma^2)
+
+```
+
+
+### Problem Set 2
+
+Write a function to compute the inverse of a well-conditioned full-rank square matrix using co-factors. In order to compute the co-factors, you may use built-in commands to compute the determinant. Your function should have the following signature: 
+
+`B = myinverse(A)` 
+
+where $A$ is a matrix and $B$ is its inverse and $A \times B = I$. The off-diagonal elements of $I$ should be close to zero, if not zero. Likewise, the diagonal elements should be close to 1, if not 1. Small numerical precision errors are acceptable but the function myinverse should be correct and must use co-factors and determinant of A to compute the inverse.
+
+```{r}
+my_inverse <- function(my_matrix){
+  if (nrow(my_matrix)!= ncol(my_matrix)){
+    print(" Must be a square matrix!")
+  }else  if(det(my_matrix) == 0){
+    print("This is a singular matrix!")
+  }else{  #create an empty matrix to hold cofactors later
+    cat("\n\nThe determinant is ", det(my_matrix), "\n\n")
+    
+    #Calculate the cofactors
+    cf <- matrix(nrow = nrow(my_matrix), ncol = ncol(my_matrix))
+  
+    for(i in 1:nrow(my_matrix)){
+      for(j in 1:ncol(my_matrix)){
+        cf[i, j] <- det(my_matrix[-i,-j])*(-1)^(i+j) #fill in cofactor matrix
+      }
+    }
+  }
+  
+#Adjugate -- Transpose all elements in the cofactor matrix
+adjugate <- t(cf)
+
+#Multiply by 1/Determinant
+the_inverse <- (1 / det(my_matrix)) * adjugate
+return(the_inverse)
+}
+```
+
+<br/> <br/>
+
+#### Let's test out the function.
+```{r}
+A <- matrix(c(2, 0, 3, -2, 3, -4, -3, 1, -4), 3, 3, byrow = T)
+A
+B = my_inverse(A)
+B
+```
+
+<br/><br/><br/>
+
+#### Show that $A \times B = I$
+
+```{r}
+round(A %*% B)
+```
+
+<br/><br/>
+
+#### Another example using 4 by 4 matrix
+
+```{r}
+
+A1 <- matrix(c(0, 7, 1, -5, 3, 2, -1, 1, 1, 0, 0, 2, 2, -4, -2, 0), 4, 4, byrow = T)
+A1
+B1 = my_inverse(A1)
+B1
+round(A1 %*% B1)
+```
+
+
+
+
+Helpful Links:
+
++ [How to Calculate the Singular-Value Decomposition (SVD)](https://machinelearningmastery.com/singular-value-decomposition-for-machine-learning/)
+
++ [Singular Value Decomposition](https://rpubs.com/aaronsc32/singular-value-decomposition-r)
+
++ [Calculate matrix of cofactors](https://stackoverflow.com/questions/29046934/calculate-matrix-of-cofactors-in-r)
+
++ [Find inverse of a matrix](https://www.mathsisfun.com/algebra/matrix-inverse-minors-cofactors-adjugate.html)

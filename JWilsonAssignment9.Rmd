@@ -1,0 +1,172 @@
+---
+title: "DATA605 Wk9 Assignment 9"
+author: "Javern Wilson"
+date: "10/26/2019"
+output: 
+  html_document:
+    theme: yeti
+---
+
+## 1. The price of one share of stock in the Pilsdorff Beer Company (see Exercise 8.2.12) is given by $Y_n$ on the *n*th day of the year. Finn observes that the diﬀerences $X_n = Y_n+1 −Y_n$ appear to be independent random variables with a common distribution having mean $\mu = 0$ and variance $\sigma^2= 1/4$. If $Y_1 = 100$, estimate the probability that $Y_{365}$ is 
+
+
+Let $S^*_n = (S_n−nµ)/\sqrt{n}σ$ and 
+
+$X_n = Y_{n+1} −Y_n$ therefore
+
+$X_{364} = Y_{365}-Y_1$
+ 
+$n = 364$
+
+
+(a) $\ge100$. 
+```{r}
+1-pnorm((100-100)/(sqrt(364)*0.5))
+```
+
+
+
+(b) $\ge110$. 
+
+```{r}
+1-pnorm((110-100)/(sqrt(364)*0.5))
+```
+
+
+
+(c) $\ge120$. 
+
+```{r}
+1-pnorm((120-100)/(sqrt(364)*0.5))
+
+```
+
+
+
+
+## 2. Calculate the expected value and variance of the binomial distribution using the moment generating function. 
+
+
+The Binomal distribution is given as:
+
+$\binom{n}{x}p^x(1-p)^{n-x}$ or
+$b(x; n, p) = \frac{n!}{x!(n − x)!}p^xq^{n−x}$ with $q = 1 − p$
+
+Moment Generation function is given by 
+
+\[ 
+\begin{aligned}
+M(t)&=\sum_{x = 0}^{n} e^{tx}\binom{n}{x}p^x(1-p)^{n-x}\\
+&=\sum_{x = 0}^{n} e^{tx}\frac{n!}{x!(n − x)!}p^xq^{n−x}\\
+&=\sum_{x = 0}^{n} (pe^t)^x\frac{n!}{x!(n − x)!}xq^{n−x}\\
+&=(pe^t + 1 − p)^n\\
+&=(pe^t + q)^n\\
+\end{aligned}
+\]
+
+
+With the first moment we differentiate the MFG with respect to `t`
+
+
+\[
+\begin{aligned}
+M'(t)&=n(pe^t + q)^{n-1}pe^t\\
+&=npe^t(pe^t+q)^{n-1}
+\end{aligned}
+\]
+
+Evaluating at t=0 we get the mean
+\[\begin{aligned}M'(0)=E(X)&= np(q + p)^{n−1}\\
+&=np(1-p+p)^{n-1}\\
+&=np
+\end{aligned}\]
+
+
+For the second moment with t = 0
+
+\[
+\begin{aligned}
+M''(t)= E(X^2)&=(n-1)npe^t(pe^t+q)^{n-2}pe^t + (npe^t)(pe^t + q)^{n-1}\\
+&=np(n-1)(p+q)^{n-2}(p)+np(p+q)^{n-1}\\
+&=np(n-1)p+np\\
+&=(n^2p - np)p+np\\
+&=n^2p^2-np^2 + np\\
+&= np(np-p+1)\\
+&=np(np+q)
+\end{aligned}
+\]
+
+The Variance
+
+\[
+\begin{aligned}
+V(X)&=E(X^2) - [E(X)]^2\\
+&=np(np+q)- n^2p^2\\
+&=n^2p^2+npq-n^2p^2\\
+&=npq
+\end{aligned}
+\]
+
+
+## 3. Calculate the expected value and variance of the exponential distribution using the moment generating function. 
+
+The exponential function goes as follows:
+
+$f_X^{(x)} = \lambda e^{-\lambda x}$
+
+Using the MFG method
+
+\[
+\begin{aligned}M(t)&=
+\left(\int_{-\infty}^{+\infty} e^{tx}f_X^{(x)} \; dx\right)\\
+&=\left(\int_{0}^{\infty} e^{tx}\lambda e^{-\lambda x} \; dx\right)\\
+&=\left(\int_{0}^{\infty} e^{x(t- \lambda)}\; dx\right)\\
+&=\frac{\lambda}{t- \lambda}\bigg[e^{x(t- \lambda)}\bigg]_{0}^{\infty}\\
+&=\frac{\lambda}{t- \lambda}\bigg[\displaystyle \lim_{x \to \infty} e^{x(t- \lambda)}- e^{(t- \lambda)0}\bigg]\\
+&=\frac{\lambda}{t- \lambda}[0-1]\\
+&=\frac{\lambda}{\lambda - t}\quad  where \quad t-\lambda < 0, t<\lambda\end{aligned} 
+
+\]
+
+*N.B* $M(t)$ can be written also as $\lambda(\lambda-t)^{-1}$
+
+Finding the first moment
+
+\[
+\begin{aligned}
+M'(0) = E(X)&= \lambda(\lambda-t)^{-1}\\
+&=(-1)(\lambda)(\lambda-t)^{-2}(-1) \quad use \ of \ chain \ rule\\
+&=\lambda(\lambda-t)^{-2}\\
+&=\lambda(\lambda-0)^{-2}\\
+&=\frac{\lambda}{(\lambda)^2}=\frac{1}{\lambda}
+\end{aligned}
+\]
+
+Second derivative
+
+\[
+\begin{aligned}
+M''(0)=E(X^2)&= \lambda(\lambda-t)^{2}\\
+&=(-2)(\lambda)(\lambda-t)^{-3}(-1) \quad use \ of \ chain \ rule\\
+&=2\lambda(\lambda-t)^{-3}\\
+&=2\lambda(\lambda-0)^{-3}\\
+&=\frac{2\lambda}{(\lambda)^3}= \frac{2\lambda}{\lambda^2}
+\end{aligned}
+\]
+
+The Variance
+
+\[
+\begin{aligned}V(X) &= E(X^2) - [E(X)]^2\\
+&=\frac{2}{\lambda^2} - \frac{1}{\lambda^2}\\
+&=\frac{1}{\lambda^2}
+\end{aligned}
+\]
+
+### Helpful Links
+
+[Binomial](https://www.le.ac.uk/users/dsgp1/COURSES/MATHSTAT/5binomgf.pdf)
+
+[Exponential (Video)](https://www.youtube.com/watch?v=QUAecbMv0y0)
+
+[Exponential](https://bookdown.org/probability/beta/moment-generating-functions.html#moments-and-taylor-series)

@@ -1,0 +1,158 @@
+---
+title: "DATA605 Assignment 8"
+author: "Javern Wilson"
+date: "10/14/2019"
+output: 
+  html_document:
+    theme: sandstone
+
+---
+
+# Pg.303
+
+## Question 11
+A company buys 100 lightbulbs, each of which has an exponential lifetime of 1000 hours. What is the expected time for the ﬁrst of these bulbs to burn out? (See Exercise 10.)
+
+
+**Theorem:** If $X_i \sim exponential(λ_i)$, for $i = 1, 2, . . . , n$, and $X_1, X_2, . . . , X_n$ are mutually independent random variables, then
+
+$$ min\{X_1, X_2, . . . , X_n\} ∼ exponential\left(\sum_{i=1}^{\infty} \lambda_i\right)$$
+
+Based on the exponential probability distribution: $\mu = \frac{1}{\lambda}$
+
+Therefore:
+
+$E(X) = \frac{1}{\lambda} = 1000$ which results in $\lambda = \frac{1}{1000}$
+
+The expected life for first to burn out is:
+
+$\frac{1}{100/1000}=10$
+
+## Question 14
+Assume that X1 and X2 are independent random variables, each having an exponential density with parameter $\lambda$. Show that $Z = X_1-X_2$ has density
+
+$$fZ{(z)} = (1/2)\lambda e^{−λ|z|} $$
+
+$Z = X_1 - X_2$ then $X_1 = Z + X_2$
+
+$$f(Z)(z) = \int_{-\infty}^{+ \infty}f_{X_1}(z+x_2).f_{X_2}(x_2)dx$$
+
+**If Z < 0 then**
+ 
+$$\int_{0}^{\infty} \lambda e^{-\lambda(z+x_2)}.\lambda e^{-\lambda(x_2)} dx\\
+ \lambda e^{-\lambda z}\int_{0}^{\infty} \lambda e^{-2\lambda(x_2)} dx\\
+ \lambda e^{-\lambda z}(-\frac{1}{2}\lambda e^{-2\lambda x_2})\Big|_0^\infty\\
+ =\frac{\lambda e^{\lambda z}}{2}$$
+
+**If Z > 0 then**
+$$ =\frac{\lambda e^{-\lambda z}}{2}$$
+
+**Therefore**
+
+$$\frac{\lambda}{2}e^{-\lambda|z|}$$
+
+Credit: [MIT Courseware](https://www.youtube.com/watch?v=f8Nli1AfygM)
+
+# Pg. 320-321
+
+## Question 1
+
+Let $X$ be a continuous random variable with mean $\mu$ = 10 and variance $\sigma^2$ = 100/3. Using Chebyshev’s Inequality, ﬁnd an upper bound for the following probabilities.
+
+**Chebyshev's inequality** says that at least $1- \frac{1}{k^2}$ of data from a sample must fall within $k$ standard deviations from the mean (*where $k$ is any positive real number greater than one*). This method provides a way to know what fraction of data falls within $k$ standard deviations from the mean for any data set.
+
+
+
+$$P(|X −µ|≥ kσ)≤ \frac{σ^2}{k^2\sigma^2}=\frac{1}{k^2}$$
+
+We know:
+
+Mean is $\mu = 10$ 
+
+Variance is $\sigma^2 = \frac{100}{3}$
+
+Therefore the standard deviation is $\sigma = \sqrt{\frac{100}{3}}$
+
+
+
+(a) $P(|X −10|≥2)$. 
+
+$k\sigma = 2$
+
+$k = \frac{2}{\sigma}$
+
+$k = \frac{2}{\sqrt{\frac{100}{3}}}$
+
+```{r}
+V <- 100 / 3
+std <- sqrt(V)
+k_sigma <- 2
+k <- k_sigma / std
+1/k^2
+```
+
+Which is approximately 1
+
+
+
+(b) $P(|X −10|≥5)$. 
+
+$k\sigma = 5$
+
+$k = \frac{5}{\sigma}$
+
+$k = \frac{5}{\sqrt{\frac{100}{3}}}$
+
+```{r}
+V <- 100 / 3
+std <- sqrt(V)
+k_sigma <- 5
+k <- k_sigma / std
+1/k^2
+
+```
+
+
+
+(c) $P(|X −10|≥9)$. 
+
+$k\sigma = 9$
+
+$k = \frac{9}{\sigma}$
+
+$k = \frac{9}{\sqrt{\frac{100}{3}}}$
+
+```{r}
+V <- 100 / 3
+std <- sqrt(V)
+k_sigma <- 9
+k <- k_sigma / std
+k
+1/k^2
+```
+```{r}
+1 - 0.4115226
+
+```
+So Chebyshev’s inequality says that at least 60% of the data values of any distribution must be within 1.558846 standard deviations of the mean.
+
+
+
+(d) $P(|X −10|≥20)$. 
+
+
+$k\sigma = 20$
+
+$k = \frac{20}{\sigma}$
+
+$k = \frac{20}{\sqrt{\frac{100}{3}}}$
+
+```{r}
+
+V <- 100 / 3
+std <- sqrt(V)
+k_sigma <- 20
+k <- k_sigma / std
+1/k^2
+```
+

@@ -1,0 +1,132 @@
+---
+title: "DATA605 WK7 Assignment 7"
+author: "Javern Wilson"
+date: "10/12/2019"
+output: 
+  html_document:
+    theme: flatly
+    highlight: kate
+---
+
+## 1.  Let $X_1$, $X_2$,..., $X_n$ be n mutually independent random variables, each of which is uniformly distributed on the integers from 1 to k. Let Y denote the minimum of the $X_i$’s. Find the distribution of Y. 
+
+Solution: For $1 ≤ j ≤ k$, $m(j) = \frac{(k−j+1)^n−(k−j)}{k^n}$
+
+**In other words**
+
+As Y is the minimum value of $X_i$'s over all of the $X_i$'s then the distribution function would be $m(j) = P(Y = j)$.
+
+We will need to count the number of ways that we can assign the $X_i$'s to values between $j$ and $k$ with at least one $X_i$ being assigned to $j$ divided by the total number of possible ways to assign $X_i$'s to values between $1$ and $k$.
+
+ 
+## 2.  Your organization owns a copier (future lawyers, etc.) or MRI (future doctors).  This machine has a manufacturer’s expected lifetime of 10 years.  This means that we expect one failure every ten years.  (Include the probability statements and R Code for each part.). 
+
+
+ 
+### a.  What is the probability that the machine will fail after 8 years?.  Provide also the expected value and standard deviation.  Model as a geometric.  (Hint: the probability is equivalent to not failing during the first 8 years..) 
+ 
+ $P(X=n) = q^{n-1}p$ where $n = 8$ and $p = 0.1$
+```{r}
+# The probabilty of failure = 1/10
+p = 0.1
+
+# n trials
+n = 8
+
+
+dgeom(x = n, prob = p)
+
+```
+ 
+ $E(X) = \frac{1}{p}$
+ 
+```{r}
+1 / p
+```
+ 
+$D(X) = \frac{1-p}{p^2}$
+```{r}
+sqrt((1 - p) / p**2)
+
+```
+
+ 
+### b.  What is the probability that the machine will fail after 8 years?.  Provide also the expected value and standard deviation.  Model as an exponential.
+  
+  $P(X \ge n) = e^{\frac{-k}{\mu}}$ where $\lambda = 0.1$ and $\mu = \frac{1}{\lambda} = 10$
+  
+  $P(X \ge 8) = e^{\frac{-8}{10}}$ 
+```{r}
+pexp(8, rate = 0.1, lower.tail = F)
+```
+
+$E(X) = \frac{1}{\lambda}$\
+```{r}
+1 / 0.1
+```
+
+
+$D(X)$
+
+```{r}
+sqrt(1/0.1^2)
+```
+
+ 
+### c.  What is the probability that the machine will fail after 8 years?.  Provide also the expected value and standard deviation.  Model as a binomial.  (Hint:  0 success in 8 years)   
+  
+  $b(n, p, k) =\binom{n}{k}p^kq^{n-k} $
+  
+  $P(K = 0) = b(8, 0.1, 0)$
+ 
+```{r}
+pbinom(0, 8, 0.1)
+
+```
+ 
+ $E(X) = np$
+ 
+```{r}
+n = 8
+p = 0.1
+
+n*p
+```
+ 
+ 
+$D(X) = \sqrt{npq}$
+```{r}
+n = 8
+p = 0.1
+q = 1- p
+sqrt(n * p * q)
+```
+
+
+### d.  What is the probability that the machine will fail after 8 years?.  Provide also the expected value and standard deviation.  Model as a Poisson.   
+  
+ $P(X = k) \approx \frac{\lambda k}{k!}e^{−\lambda}$ where lambda $8 / 10 = 0.8$
+ 
+ Failing after 8 years, that is 8 or more years -- $P(X \ge 8)$
+ 
+ $\lambda$ is the expected number of successes in 8 years which is `0`.
+ 
+```{r}
+ppois(0, lambda=0.8, lower.tail = F)
+```
+
+$E(X) = \lambda = 0.8$
+
+$D(X) = sqrt(\lambda)$
+```{r}
+sqrt(0.8)
+```
+
+
+Helpful Links:
+
+[Problem Sets](https://math.dartmouth.edu/archive/m20f10/public_html/HW5Solutions.pdf)
+
+[Poisson Distribution]([http://www.r-tutor.com/elementary-statistics/probability-distributions/poisson-distribution)
+  
+  

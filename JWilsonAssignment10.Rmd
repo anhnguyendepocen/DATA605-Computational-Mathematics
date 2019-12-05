@@ -1,0 +1,134 @@
+---
+title: "DATA605 WK10 Assignment 10"
+author: "Javern Wilson"
+date: "10/28/2019"
+header-includes:
+  - \usepackage{blkarray}
+  - \usepackage{amsmath}
+output:
+    html_document:
+      theme: readable
+---
+
+
+## Smith is in jail and has 1 dollar; he can get out on bail if he has 8 dollars. A guard agrees to make a series of bets with him. If Smith bets A dollars, he wins A dollars with probability `.4` and loses A dollars with probability `.6`. 
+ 
+Find the probability that he wins 8 dollars before losing all of his money if 
+ 
+ 
+### (a) he bets 1 dollar each time (timid strategy). 
+
+Smith's outcome is a Markov Chain
+
+Let's create the transition matrix in `canonical form`.
+
+
+P =
+\begin{array}{c | c}
+  Q & R \\
+  \hline
+  0 & I\\
+\end{array}\\
+
+
+P =
+\begin{array}{c c c c c c c c | c c }
+  & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 0 & 8 \\
+  1 & 0 & 0.4 & 0 & 0 & 0 & 0 & 0 & 0.6 & 0\\
+  2 & 0.6 & 0 & 0.4 & 0 & 0 & 0 & 0 & 0 & 0 \\
+  3 & 0 & 0.6 & 0 & 0.4 & 0 & 0 & 0 & 0 & 0\\
+  4 & 0 & 0 & 0.6 & 0 & 0.4 & 0 & 0 & 0 & 0\\
+  5 & 0 & 0 & 0 & 0.6 & 0 & 0.4 & 0 & 0 & 0\\
+  6 & 0 & 0 & 0 & 0 & 0.6 & 0 & 0.4 & 0 & 0\\
+  7 & 0 & 0 & 0 & 0 & 0 & 0.6 & 0 & 0 & 0.4\\
+  \hline
+  0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0\\
+  8 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1 \\
+\end{array}
+
+From this we see that the matrix **Q** is
+
+Q = \begin{pmatrix} 
+0 & 0.4 & 0 & 0 & 0 & 0 & 0\\
+0.6 & 0 & 0.4 & 0 & 0 & 0 & 0 \\
+0 & 0.6 & 0 & 0.4 & 0 & 0 & 0\\
+0 & 0 & 0.6 & 0 & 0.4 & 0 & 0\\
+0 & 0 & 0 & 0.6 & 0 & 0.4 & 0\\
+0 & 0 & 0 & 0 & 0.6 & 0 & 0.4\\
+0 & 0 & 0 & 0 & 0 & 0.6 & 0
+\end{pmatrix}
+
+I = \begin{pmatrix} 
+1 & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & 1 & 0 & 0 & 0 & 0 & 0 \\
+0 & 0 & 1 & 0 & 0 & 0 & 0\\
+0 & 0 & 0 & 1 & 0 & 0 & 0\\
+0 & 0 & 0 & 0 & 1 & 0 & 0\\
+0 & 0 & 0 & 0 & 0 & 1 & 0\\
+0 & 0 & 0 & 0 & 0 & 0 & 1
+\end{pmatrix}
+
+R = \begin{array}{ccc}
+& 0 & 8 \\
+1 & 0.6 & 0 \\
+2 & 0 & 0 \\
+3 & 0 & 0\\
+4 & 0 & 0\\
+5 & 0 & 0\\
+6 & 0 & 0\\
+7 & 0 & 0.4\\
+\end{array}
+
+
+Calculation:
+
+```{r}
+I <- diag(7)
+I
+
+
+Q <- matrix(c(rep(c(0, 0.4, 0, 0, 0, 0, 0, 0.6), 6), 0), 7, byrow = T)
+
+Q
+
+I - Q
+
+# Fundamental Matrix
+N <- solve(I - Q)
+round(N, 4)
+
+R <- matrix(rep(c(0, 0), 7), nrow = 7)
+R[1,1] <- 0.6
+R[7,2] <- 0.4
+R
+
+B <- N %*% R
+colnames(B) <- c(0, 8)
+round(B, 4)
+
+```
+
+
+### (b) he bets, each time, as much as possible but not more than necessary to bring his fortune up to 8 dollars (bold strategy). 
+
+In other words with each bet, his winning doubles.
+The chances of this happening is like so:
+
+Smith starts with 1
+
+Risk 1: He wins 2
+
+Risk 2: He wins 4
+
+Risk 3: He wins 8
+
+Just 3 chances (in a row) he may need to take using the bold strategy. The chances of luck being on Smith's side is:
+
+```{r}
+0.4^3
+
+```
+
+
+### (c) Which strategy gives Smith the better chance of getting out of jail? 
+The bold strategy with `6.4%` compared to the timid strategy with `2.03%`

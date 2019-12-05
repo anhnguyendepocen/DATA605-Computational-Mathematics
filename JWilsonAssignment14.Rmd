@@ -1,0 +1,177 @@
+---
+title: "DATA605 Wk14 Discussion 14"
+author: "Javern Wilson"
+date: "11/24/2019"
+output: 
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+    theme: yeti
+---
+
+## Equation 1 {.tabset .tabset-fade .tabset-pills}
+ 
+ $$\pmb{f(x) = \frac{1}{(1-x)}}$$
+ 
+ Function evaluated at $0$:
+ 
+ $$f(0) = \frac{1}{1-0} = 1$$
+
+Function re-written:
+
+$$\frac{1}{(1-x)} = 1(1-x)^{-1}$$
+
+### Derivatives
+
+1. First Derivative:
+
+$$f'(x) = -1(1-x)^{-2}.(-1)= 1(1-x)^{-2} = \frac{1}{(1-x)^{2}}$$
+
+  First Derivative evaluated: $f'(0) = 1$
+
+
+2. Second Derivative:
+
+$$f''(x) = -2(1-x)^{-3}.(-1)= 2(1-x)^{-3} = \frac{2}{(1-x)^{3}}$$
+
+  Second Derivative evaluated: $f''(0) = 2$
+
+
+3. Third Derivative
+
+$$f'''(x) = -6(1-x)^{-4}.(-1)= 6(1-x)^{-4} = \frac{6}{(1-x)^{4}}$$
+
+  Third Derivative evaluated: $f'''(0) = 6$
+
+
+4. Fourth Derivative
+
+$$f^{(4)}(x) = -24(1-x)^{-5}.(-1)= 24(1-x)^{-5} = \frac{24}{(1-x)^{5}}$$
+
+  Fourth Derivative evaluated: $f^{(4)}(0) = 24$
+
+
+
+5. Fifth Derivative
+
+$$f^{(5)}(x) = -120(1-x)^{-6}.(-1)= 120(1-x)^{-6} = \frac{120}{(1-x)^{6}}$$
+
+  Fifth Derivative evaluated: $f^{(5)}(0) = 120$
+
+
+
+$$ f(x) \approx 1 + \frac{1}{1-x} + \frac{1}{(1-x)^{2}} + \frac{2}{(1-x)^{3}} + \frac{6}{(1-x)^{4}} + \frac{24}{(1-x)^{5}} + \frac{120}{(1-x)^{6}}+ ...+ \frac{n!}{(1-x)^{n+1}}$$
+
+
+### Taylor Series:
+
+$$f(x) = f(c) + f'(c)(x-c) + \frac{f''(c)}{2!}(x-c)^2 + \frac{f'''(c)}{3!}(x-c)^3 + \frac{f^{(4)}(c)}{4!}(x-c)^4 + \frac{f^{(5)}(c)}{5!}(x-c)^5...+ \frac{f^n(c)}{n!}(x-c)^n$$
+
+$$f\left(x\right)\approx\frac{1}{0!}x^{0}+\frac{1}{1!}x^{1}+\frac{2}{2!}x^{2}+\frac{6}{3!}x^{3}+\frac{24}{4!}x^{4}+\frac{120}{5!}x^{5}$$
+
+
+$$ 1 + x + x^2 + x^3 + x^4 + x^5+...+x^n = \sum_{n=0}^\infty x^n$$
+
+
+
+## Equation 2 {.tabset .tabset-fade .tabset-pills}
+
+
+$$\pmb{f(x) = e^x}$$
+
+
+$$f(0) = 1$$
+
+### Derivatives
+
+
+First Derivative:
+$$f'(x) = e^x$$
+
+Evaluated: $f'(0) = 1$
+
+Second Derivative:
+$$f''(x) = e^x$$
+
+Evaluated: $f''(0) = 1$
+
+
+Third Derivative:
+$$f'''(x) = e^x$$
+
+Evaluated: $f'''(0) = 1$
+
+Fourth Derivative:
+$$f^{(4)}(x) = e^x$$
+
+Evaluated: $f^{(4)}(0) = 1$
+
+
+Fifth Derivative:
+$$f^{(5)}(x) = e^x$$
+
+Evaluated: $f^{(5)}(0) = 1$
+
+
+
+### Taylor Series
+
+$$1 + \frac{1}{1!}x + \frac{1}{2!}x^2 + \frac{1}{3!}x^3 + \frac{1}{4!}x^4 + \frac{1}{5!}x^5 + ...+\frac{1}{n!}$$
+
+
+$$1 + x + \frac{1}{2}x^2 + \frac{1}{6}x^3 + \frac{1}{24}x^4 + \frac{1}{120}x^5 + ...+\frac{1}{n!}x^n = \sum_{n=0}^\infty \frac{x^n}{n!} $$
+
+
+
+
+## Equation 3 {.tabset .tabset-fade .tabset-pills}
+
+
+$$\pmb{f(x) = ln(1 + x)}$$
+
+
+$$f(0) = ln(1) = 0$$
+
+### Derivatives
+
+First Derivative:
+
+$$f'(x) = \frac{1}{x + 1}$$
+
+
+Second Derivative:
+
+$$f''(x) = \frac{-1}{(x + 1)^2}$$
+
+
+Third Derivative:
+
+$$f'''(x) = \frac{2}{(x + 1)^3}$$
+
+
+Fourth Derivative:
+
+$$f^{(4)}(x) = \frac{-6}{(x + 1)^4}$$
+
+Fifth Derivative:
+
+$$f^{(4)}(x) = \frac{24}{(x + 1)^5}$$
+
+
+### Taylor Series
+
+$$0 + \frac{1}{1!}x - \frac{1}{2!} x^2+ \frac{2}{3!}x^3 - \frac{6}{4!}x^4 + \frac{24}{5!}x^5 + ...$$
+
+
+
+$$x - \frac{1}{2}x^2 + \frac{1}{3}x^3 - \frac{1}{4}x^4 + \frac{1}{5}x^5 + ...+ \frac{1}{n}x^n = \sum_{n=0}^\infty \frac{x^n}{n}$$
+
+
+
+
+
+
+$$ \iint_R (e^{8x + 3y})dA \int_2^4 \int_2^4 e^{8x + 3y}\\\int_2^4 \bigg[\frac{1}{8} e^{8x + 3y}\bigg]_2^4\\$$
+
