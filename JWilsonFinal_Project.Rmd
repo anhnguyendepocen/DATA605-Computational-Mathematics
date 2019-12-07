@@ -1,0 +1,514 @@
+---
+title: "DATA605 Final Project"
+author: "Javern Wilson"
+date: "11/28/2019"
+output: 
+ html_document:
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+    theme: cosmo
+    highlight: espresso
+---
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(gridExtra)
+library(kableExtra)
+library(psych)
+library(corrplot)
+library(matrixcalc)
+library(MASS)
+library(Rmisc)
+library(mice)
+library(VIM)
+library(broom)
+```
+
+# Problem 1
+
+Using R, generate a random variable X that has 10,000 random uniform numbers from 1 to N, where N can be any number of your choosing greater than or equal to 6.  Then generate a random variable Y that has 10,000 random normal numbers with a mean of $\mu = \sigma = (N+1)/2$.
+
+```{r}
+set.seed(123)
+X <- runif(10000, 1, 5)
+Y <- rnorm(10000, mean = 3, sd=3)
+```
+
+
+## Probability
+
+Calculate as a minimum the below probabilities a through c.  Assume the small letter "x" is estimated as the median of the X variable, and the small letter "y" is estimated as the 1st quartile of the Y variable.  Interpret the meaning of all probabilities.
+
+```{r}
+x <- median(X)
+find_quant <- data.frame(quantile(Y)) #get the quantiles for Y
+y <- find_quant$quantile.Y.[2] #get the first quantile
+```
+
+
+  -  $P(X>x | X>y)$		
+  
+```{r}
+sum((((X > x ) & (X > y )))/10000) / (sum(X > y)/10000)
+```
+  
+
+  -  $P(X>x, Y>y)$
+  
+```{r}
+sum((X > x ) * (Y > y ))/10000
+```
+  
+
+  -  $P(X<x | X>y)$		
+  
+```{r}
+sum((((X < x ) & (X > y )))/10000) / (sum(X > y)/10000)
+```
+  
+
+
+Investigate whether $P(X>x \ and \ Y>y)=P(X>x)P(Y>y)$ by building a table and evaluating the marginal and joint probabilities.
+
+### Contingency Table 1
+
+```{r}
+#Marginal
+Xgx <- sum(X > x)/10000
+Xlx <- sum(X < x)/10000
+Ygy <- sum(Y > y)/10000
+Yly <- sum(Y < y)/10000
+
+#joint
+Xgy <- sum(X>x & Y>y)/10000
+Xgly <- sum(X>x & Y<y)/10000
+Xly <- sum(X<x & Y<y)/10000
+Xlgy <-sum(X<x & Y>y)/10000
+
+row1 <- c(Xgx, Xgy, 0, Xgly)
+row2 <- c(Xgy, Ygy, Xlgy, 0)
+row3 <- c(0, Xlgy, Xgx, Xly)
+row4 <- c(Xgly, 0, Xly, Yly)
+contingency_table1 <- data.frame(rbind(row1, row2, row3, row4))
+colnames(contingency_table1) <- c("X>x", "Y>y", "X<x", "Y<y")
+row.names(contingency_table1) <- c("X>x", "Y>y", "X<x", "Y<y")
+
+kable(contingency_table1) %>% kable_styling(bootstrap_options = c("striped", "responsive"), full_width = F, position = "left")
+
+```
+
+Based on the table above:
+
+$P(X>x \ and \ Y>y) = 0.3756$
+
+$P(X>x) = 0.5$
+
+$P(Y>y) = 0.75$
+
+```{r}
+0.75 * 0.5
+```
+
+The two probabilities are the same.
+
+
+Check to see if independence holds by using Fisher’s Exact Test and the Chi Square Test.  What is the difference between the two? Which is most appropriate?
+
+### Contingency Table 2
+
+```{r}
+jm_df <- cbind(X, Y)
+contingency_table2 <- prop.table(table(jm_df[,1]>x, jm_df[,2]>y))
+
+row.names(contingency_table2) <- c("X<x", "X>x")
+
+colnames(contingency_table2) <- c("Y<y", "Y>y")
+
+kable(contingency_table2) %>% kable_styling("striped", full_width = F, position = "left")
+```
+
+
+### Fisher's Exact Test
+
+```{r}
+fisher.test(contingency_table2)
+```
+
+
+
+### Chi Square Test
+
+```{r}
+chisq.test(contingency_table2)
+```
+
+For both tests the P-value is greater than 0.05, so we believe the variables are independent.
+
+Fisher’s exact test is best used for testing independence that is typically used only for 2×2 contingency table while the Chi-squared is best for larger samples. In our case, Fisher's Exact test is more appropriate.
+
+
+***
+
+
+# Problem 2
+
+## Descriptive and Inferential Statistics  
+
+Provide univariate descriptive statistics and appropriate plots for the training data set.  Provide a scatterplot matrix for at least two of the independent variables and the dependent variable. Derive a correlation matrix for any three quantitative variables in the dataset.  Test the hypotheses that the correlations between each pairwise set of variables is 0 and provide an 80% confidence interval.  Discuss the meaning of your analysis.  Would you be worried about familywise error? Why or why not?
+
+### Import Data
+```{r}
+train_data <- read.csv('train.csv', sep = ',', header = T, stringsAsFactors = F)
+test_data <- read.csv("test.csv", sep = ',', header = T, stringsAsFactors = F)
+```
+
+
+### Preview
+```{r}
+kable(head(train_data, 100)) %>% kable_styling(bootstrap_options = "striped" ,font_size = 11) %>% scroll_box(height = "500px")
+```
+
+
+```{r}
+dim(train_data)
+```
+There are `81` variables and `1460` obvervations in the training dataset.
+
+### Summary
+```{r}
+summary(train_data)
+```
+
+Just to name a few, on average the houses has 2 full bath and the max is 3. Or the average prices for the houses is \$180000 while the most expensive houses cost about \$755000.
+
+
+### Histogram of all numeric values
+
+```{r}
+
+train_data %>% 
+  keep(is.numeric) %>% 
+  gather() %>% 
+  ggplot(aes(value)) +
+    facet_wrap(~ key, scales = "free") +
+    geom_histogram()
+
+```
+
+### Histogram of Sale Prices
+```{r}
+SP_hist <- ggplot(train_data, aes(x = SalePrice)) + geom_histogram(fill = "lightblue") + geom_vline(aes(xintercept=mean(SalePrice)), color="darkgreen", linetype="dashed", size=1)
+
+SP_boxplot <- ggplot(train_data, aes(x = "", y = SalePrice)) + geom_boxplot(fill = "lightblue") + xlab("SalePrice")
+
+grid.arrange(SP_hist, SP_boxplot, ncol=2)
+```
+
+
+### Sale Price against Sale Condition.
+```{r}
+ggplot(train_data, aes(x=SaleCondition, y=SalePrice, fill=SaleCondition)) + geom_bar(stat="identity") + theme_minimal() + scale_fill_brewer(palette="Set3")
+```
+
+For better readability:
+
+  - **Normal** Normal Sale
+  - **Abnorml**  Abnormal Sale -  trade, foreclosure, short sale
+  - **AdjLand**  Adjoining Land Purchase
+  - **Alloca**   Allocation - two linked properties with separate deeds, typically condo with a garage unit	
+  - **Family**	 Sale between family members
+  - **Partial**  Home was not completed when last assessed (associated with New Homes)
+
+
+### Overall Quality of the houses
+
+```{r}
+hquality <- data.frame(table(train_data$OverallQual))
+ggplot(hquality, aes(x=Var1, y=Freq)) + geom_bar(stat="identity", color="brown", fill="white") + xlab("Rate")
+
+
+```
+
+Houses are sold at average overall quality has a rating of 5. This makes sense because it is very expensive fixing up a house that is very poor and the average buys cannot afford houses rated at 10 because they would be expensive also. The distribution is slightly skewed.
+
+### How old are the houses?
+
+```{r}
+year_built <- data.frame(table(train_data$YearBuilt))
+ggplot(year_built, aes(x=Var1, y=Freq)) + geom_bar(stat="identity", color="blue", fill="white") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab( "Year")
+```
+
+Oldest houses are from the 19 century. Ranges from 1872 - 2010.
+
+### House Foundation
+
+Price for houses based on type of foundation.
+
+```{r}
+ggplot(train_data, aes(x=Foundation, y=SalePrice, fill = Foundation)) + geom_boxplot()
+```
+
+For reference: 
+
+  - **BrkTil**	Brick & Tile
+  - **CBlock**	Cinder Block
+  - **PConc**	  Poured Contrete	
+  - **Slab**	  Slab
+  - **Stone**	  Stone
+  - **Wood**	  Wood
+  
+  
+
+### Building Type
+
+```{r}
+building_type <- data.frame(table(train_data$BldgType))
+ggplot(building_type, aes(x=Var1, y=Freq, fill = Var1)) + geom_bar(stat="identity", color="darkgreen") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab( "Building Type") + labs(fill = "Building Type")
+```
+
+For Reference:
+
+  - **1Fam**	  Single-family Detached	
+  - **2FmCon**	Two-family Conversion; originally built as one-family dwelling
+  - **Duplx**	  Duplex
+  - **TwnhsE**	Townhouse End Unit
+  - **TwnhsI**	Townhouse Inside Unit
+
+
+### Scatterplot Matrix
+```{r}
+pairs(train_data[,c(5, 19, 39, 63, 81)], pch = 19)
+
+```
+
+We can spot some activity between SalePrice and LotArea or SalePrice and TotalBsmtSF.
+
+### Correlation Matrix
+
+```{r}
+C <- cor(train_data[, c(5, 63, 81)]); C
+corrplot(C, type="upper", order="hclust")
+```
+
+
+
+### Test Hypothesis of Correlations
+
+$H_0 = 0 \rightarrow\ There  \ is \ no \ correlation\\H_A \neq 0 \rightarrow \ There \ is \ correlation$
+
+Lot Area and Sale Price
+
+```{r}
+cor.test(train_data$LotArea, train_data$SalePrice, conf.level = 0.8)
+```
+
+Garage Area and Sale Price
+```{r}
+cor.test(train_data$GarageArea, train_data$SalePrice, conf.level = 0.8)
+```
+
+Lot Area and Garage Area
+
+```{r}
+cor.test(train_data$LotArea, train_data$GarageArea, conf.level = 0.8)
+```
+
+
+Based on the results above we will reject the null hypothesis that there is no correlations between the variables above. Also the p-values are very small which makes it safe to say that there is a correlation among each variable (Lot Area, Garage Area and Sale Price). With that being said, I would not worry about familywise error as the p-values are significant.
+
+***
+
+## Linear Algebra and Correlation
+
+Invert your correlation matrix from above. (This is known as the precision matrix and contains variance inflation factors on the diagonal.) Multiply the correlation matrix by the precision matrix, and then multiply the precision matrix by the correlation matrix. Conduct LU decomposition on the matrix.
+
+### Invert Correlation Matrix (Precision Matrix)
+
+```{r}
+inv_C <- solve(C)
+inv_C
+
+```
+
+### Correlation Matrix $\times$ Precision Matrix
+
+```{r}
+C %*% inv_C
+
+```
+
+
+### Precision Matrix $\times$ Correlation Matrix
+
+```{r}
+hmatrix <- inv_C %*% C
+hmatrix
+```
+
+### LU Decomposition
+
+```{r}
+hlu <-lu.decomposition(hmatrix)
+
+hlu
+
+#proof
+hlu$L%*%hlu$U
+```
+
+
+***
+
+## Calculus-Based Probability & Statistics
+
+Many times, it makes sense to fit a closed form distribution to data.  Select a variable in the Kaggle.com training dataset that is skewed to the right, shift it so that the minimum value is absolutely above zero if necessary.  Then load the MASS package and run fitdistr to fit an exponential probability density function.  (See  https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/fitdistr.html ).  Find the optimal value of $\lambda$ for this distribution, and then take 1000 samples from this exponential distribution using this value (e.g., rexp(1000, $\lambda$)).  Plot a histogram and compare it with a histogram of your original variable.   Using the exponential pdf, find the $5^{th}$ and $95^{th}$ percentiles using the cumulative distribution function (CDF).   Also generate a 95% confidence interval from the empirical data, assuming normality.  Finally, provide the empirical 5th percentile and 95th percentile of the data.  Discuss.
+
+The variable I will use is `GrLivArea`.
+`
+```{r}
+# fit exponential pdf
+fit <- fitdistr(train_data$GrLivArea, densfun = "exponential")
+
+#optimal value for lambda
+lambda <- fit$estimate
+
+#1000 samples
+exp_hist <- rexp(1000, lambda)
+
+# compare histograms
+ggplot(train_data, aes(x = GrLivArea)) + geom_histogram()
+ggplot()+ aes(exp_hist) + geom_histogram()
+
+qexp(0.05,rate=lambda) ## 5th percentile
+qexp(0.95,rate=lambda)## 95th percentile
+
+#0.95 confidence interval
+CI(train_data$GrLivArea, ci=0.95)
+
+```
+
+With 95% confidence, the mean of **GrLivArea** is between `1488.487` and `1542.440`. The exponential shifts the estimates further to the left with an even longer tail to the right (more spread) compared to the original data. In this case the exponential model would not be a good fit for this data. When looking at he confidence interval for the original data, it does not contain 95% of the data in the exponential model.
+
+
+***
+
+## Modeling {.tabset .tabset-fade .tabset-pills}
+
+Build some type of multiple regression  model and submit your model to the competition board.  Provide your complete model summary and results with analysis.  Report your Kaggle.com user name and score.
+
+### Missing Data
+
+```{r}
+aggr(train_data)
+
+#Impute data using sample mean (Will only work for quantitative variables)
+train_data <- complete(mice(data = train_data, m = 1, method = "mean"))
+
+```
+
+### Original Model
+
+```{r}
+predSales.lm <- lm(SalePrice ~ LotArea + OverallQual + YearBuilt + TotalBsmtSF + X1stFlrSF + X2ndFlrSF + GrLivArea + FullBath + BedroomAbvGr + KitchenAbvGr + TotRmsAbvGrd + GarageCars, data = train_data)
+
+summary(predSales.lm)
+
+```
+
+### Building Model
+
+#### Predictors with low significance to the model are removed manually as shown below step-by-step with the `update` function.
+
+Removing `FullBath`...
+
+```{r}
+predSales.lm <- update(predSales.lm, .~. - FullBath, data = train_data)
+summary(predSales.lm)
+```
+
+### Final Model
+
+Removing `GrLivArea`...
+
+```{r}
+predSales.lm <- update(predSales.lm, .~. - GrLivArea, data = train_data)
+summary(predSales.lm)
+```
+
+This model is okay. The p-value is quite small which indicates significance. According to the $R^2$, the model explains `78.47`% variation of observed values around the mean. This is good. The p-value of the `F-statistic` `532.6` for *DF 10 and 1449* is extremely small which implies that removing the insignificant variables gave us a chance to improve the fit of the model significantly.
+
+
+
+### Residual Analysis
+
+```{r}
+predSales_df <- augment(predSales.lm)
+
+ggplot(predSales_df, aes(x = .fitted, y = .resid)) + geom_point() + geom_hline(yintercept=0, color = 'brown', size = 1) + ggtitle('Residual vs Fitted')
+
+plot(predSales.lm, 1)
+
+```
+
+The residuals have a curved pattern which shows a small degree of non-linearity. This is most likely because we did not normalize our data. If you look at the second plot you'll see that there are about three to four extreme values or outliers far above and below the line or far from the model which means that the model did not capture those data points. If we delete them, the model could improve.
+
+```{r}
+ggplot(predSales_df, aes(x=.std.resid)) + geom_histogram(aes(y=..density..), bins = 50, colour="black")+
+ geom_density(alpha=.2, fill="yellow") + ggtitle('Histogram of Residuals')
+```
+
+Based on the histogram above, this is a heavily tailed distribution. We can agree that the histogram seemingly indicates that the distribution is normal. However, we notice that each end of the histogram seems to extend much further than what we usually see in a normal distribution. 
+
+
+```{r}
+qplot(sample =.std.resid, data = predSales_df) + geom_abline()+ ggtitle('Normal Q-Q Plot')
+plot(predSales.lm, 2)
+```
+
+Here we look to see if the residuals follow normal distribution or not. In our case the residual points follow the dotted line closely except at the tails where the points diverge away from the line curving in opposite directions.
+
+
+```{r}
+plot(predSales.lm, 3)
+```
+
+Scale location plot indicates spread of points across predicted values range. A red horizontal line would be ideal and would indicate Homoscedasticity (equal or uniform variance). However, our model shows Heteroskedasticity (non-uniform variance) as the residuals spread out. The higher the price of the houses, the less observations there are. The observations densly populate the line in the low or medium price ranges.
+
+
+```{r}
+plot(predSales.lm, 4)
+```
+
+This plot, also known as Cook’s distance, tells us which points have the greatest influence on the regression (leverage points). We see that observations 524, 1183 and 1299 have the greatest influence on the model. Perhaps, if we were to remove those outliers our model would be more normal.
+
+
+### Predict Model
+
+```{r}
+mypred <- predict(predSales.lm, subset(test_data, select = c(LotArea, OverallQual, YearBuilt, TotalBsmtSF, X1stFlrSF, X2ndFlrSF, BedroomAbvGr, KitchenAbvGr, TotRmsAbvGrd, GarageCars)))
+
+kaggle_pred <- data.frame(cbind(test_data$Id, mypred))
+colnames(kaggle_pred) <- c("ID", "SalePrice")
+
+write.csv(kaggle_pred, file = "PredSub1.csv", row.names = F) #write predictions to file
+```
+
+[Predictions](https://github.com/javernw/DATA605-Computational-Mathematics/blob/master/PredSub1.csv)
+
+#### My username is **javernw** and score is `0.48643`
+
+
+
+## References
+
+[Contingency Tables](https://www.datacamp.com/community/tutorials/contingency-tables-r)
+
+[Calculus Probability](https://www.cengage.com/resource_uploads/downloads/1439049254_242719.pdf)
+
+[Multiple Linear Regression](https://www.guru99.com/r-simple-multiple-linear-regression.html)
+
+[Predictive Modeling](https://bookdown.org/egarpor/PM-UC3M/app-nas.html)
+
+
