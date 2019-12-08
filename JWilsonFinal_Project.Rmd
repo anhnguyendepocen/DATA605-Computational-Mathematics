@@ -226,8 +226,7 @@ For better readability:
 
 ```{r}
 hquality <- data.frame(table(train_data$OverallQual))
-ggplot(hquality, aes(x=Var1, y=Freq)) + geom_bar(stat="identity", color="brown", fill="white") + xlab("Rate")
-
+ggplot(hquality, aes(x=Var1, y=Freq)) + geom_bar(stat="identity", color="brown", fill="orange") + xlab("Rate")
 
 ```
 
@@ -240,7 +239,7 @@ year_built <- data.frame(table(train_data$YearBuilt))
 ggplot(year_built, aes(x=Var1, y=Freq)) + geom_bar(stat="identity", color="blue", fill="white") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab( "Year")
 ```
 
-Oldest houses are from the 19 century. Ranges from 1872 - 2010.
+Oldest houses are from the 19 century. Ranges from 1872 - 2010. Most of the houses were built in 2005. 
 
 ### House Foundation
 
@@ -261,11 +260,10 @@ For reference:
   
   
 
-### Building Type
+### Building Type Sales
 
 ```{r}
-building_type <- data.frame(table(train_data$BldgType))
-ggplot(building_type, aes(x=Var1, y=Freq, fill = Var1)) + geom_bar(stat="identity", color="darkgreen") + theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab( "Building Type") + labs(fill = "Building Type")
+describeBy(train_data$SalePrice, group = train_data$BldgType)
 ```
 
 For Reference:
