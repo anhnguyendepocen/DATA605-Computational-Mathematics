@@ -1,7 +1,7 @@
 ---
 title: "DATA605 Final Project"
 author: "Javern Wilson"
-date: "11/28/2019"
+date: "12/15/2019"
 output: 
  html_document:
     toc: true
@@ -32,8 +32,10 @@ Using R, generate a random variable X that has 10,000 random uniform numbers fro
 
 ```{r}
 set.seed(123)
-X <- runif(10000, 1, 5)
-Y <- rnorm(10000, mean = 3, sd=3)
+N <- 7
+mn <- sd <- (N + 1)/2
+X <- runif(10000, 1, N)
+Y <- rnorm(10000, mean = mn, sd=sd)
 ```
 
 
@@ -53,26 +55,29 @@ y <- find_quant$quantile.Y.[2] #get the first quantile
 ```{r}
 sum((((X > x ) & (X > y )))/10000) / (sum(X > y)/10000)
 ```
-  
+
+There is a `53.1`% chance that $X$ is greater than its median given $X$ is greater than the first quantile of $Y$. 
 
   -  $P(X>x, Y>y)$
   
 ```{r}
 sum((X > x ) * (Y > y ))/10000
 ```
-  
+
+Results show that there is `37.56`% probability that $X$ is greater than its median and $Y$ is greater than its first quantile
 
   -  $P(X<x | X>y)$		
   
 ```{r}
 sum((((X < x ) & (X > y )))/10000) / (sum(X > y)/10000)
 ```
-  
+
+Here is the probability that $X$ is less than its median and $X$ is greater than the first quantile of $Y$ is `46.9`%.
 
 
-Investigate whether $P(X>x \ and \ Y>y)=P(X>x)P(Y>y)$ by building a table and evaluating the marginal and joint probabilities.
+#### Investigate whether $P(X>x \ and \ Y>y)=P(X>x)P(Y>y)$ by building a table and evaluating the marginal and joint probabilities.
 
-### Contingency Table 1
+##### Contingency Table 1
 
 ```{r}
 #Marginal
@@ -116,7 +121,7 @@ The two probabilities are the same.
 
 Check to see if independence holds by using Fisher’s Exact Test and the Chi Square Test.  What is the difference between the two? Which is most appropriate?
 
-### Contingency Table 2
+##### Contingency Table 2
 
 ```{r}
 jm_df <- cbind(X, Y)
@@ -154,6 +159,8 @@ Fisher’s exact test is best used for testing independence that is typically us
 
 # Problem 2
 
+You are to register for Kaggle.com (free) and compete in the *House Prices: Advanced Regression Techniques competition*. https://www.kaggle.com/c/house-prices-advanced-regression-techniques .  
+
 ## Descriptive and Inferential Statistics  
 
 Provide univariate descriptive statistics and appropriate plots for the training data set.  Provide a scatterplot matrix for at least two of the independent variables and the dependent variable. Derive a correlation matrix for any three quantitative variables in the dataset.  Test the hypotheses that the correlations between each pairwise set of variables is 0 and provide an 80% confidence interval.  Discuss the meaning of your analysis.  Would you be worried about familywise error? Why or why not?
@@ -175,6 +182,12 @@ kable(head(train_data, 100)) %>% kable_styling(bootstrap_options = "striped" ,fo
 dim(train_data)
 ```
 There are `81` variables and `1460` obvervations in the training dataset.
+
+```{r}
+dim(test_data)
+```
+There are `80` variables and `1459` obvervations in the test dataset.
+
 
 ### Summary
 ```{r}
@@ -286,8 +299,8 @@ We can spot some activity between SalePrice and LotArea or SalePrice and TotalBs
 ### Correlation Matrix
 
 ```{r}
-C <- cor(train_data[, c(5, 63, 81)]); C
-corrplot(C, type="upper", order="hclust")
+corr_mat <- cor(train_data[, c(5, 63, 81)]); corr_mat
+corrplot(corr_mat, type="upper", order="hclust")
 ```
 
 
@@ -307,6 +320,7 @@ Garage Area and Sale Price
 cor.test(train_data$GarageArea, train_data$SalePrice, conf.level = 0.8)
 ```
 
+
 Lot Area and Garage Area
 
 ```{r}
@@ -314,7 +328,34 @@ cor.test(train_data$LotArea, train_data$GarageArea, conf.level = 0.8)
 ```
 
 
-Based on the results above we will reject the null hypothesis that there is no correlations between the variables above. Also the p-values are very small which makes it safe to say that there is a correlation among each variable (Lot Area, Garage Area and Sale Price). With that being said, I would not worry about familywise error as the p-values are significant.
+Based on the results above we will reject the null hypothesis that there is no correlations between the variables above. Also the p-values are very small which makes it safe to say that there is a correlation among each variable (Lot Area, Garage Area and Sale Price).
+
+Family-wise error
+
+The familywise error rate (FWE or FWER) is the probability of ending up with at least one false conclusion in a series of hypothesis tests . In other words, it’s the probability of making at least one Type I Error. 
+
+Let us check the [family-wise error rate](https://www.statisticshowto.datasciencecentral.com/familywise-error-rate/) $\rightarrow FWE ≤ 1 – (1 – \alpha_{IT})^c$ 
+
+Where:
+
+$\alpha_{IT}$ = alpha level for an individual test (e.g. .05), 
+c = Number of comparisons.
+
+Alpha Level 5% or 95% confidence interval
+```{r}
+1 - (1 - 0.05)^3
+```
+
+In this case we would not worry much about familywise error as the probability of a type I error is just over 14%, which is low as we only performed three tests.
+
+
+Alpha Level 20% or 80% confidence interval
+```{r}
+1 - (1 - 0.2)^3
+```
+
+On the other hand, we *would* worry about familywise error as the probability of a type I error is about 49%, which is high considering that we only performed three tests.
+
 
 ***
 
@@ -325,15 +366,15 @@ Invert your correlation matrix from above. (This is known as the precision matri
 ### Invert Correlation Matrix (Precision Matrix)
 
 ```{r}
-inv_C <- solve(C)
-inv_C
+precision_mat <- solve(corr_mat)
+precision_mat
 
 ```
 
 ### Correlation Matrix $\times$ Precision Matrix
 
 ```{r}
-C %*% inv_C
+corr_mat %*% precision_mat
 
 ```
 
@@ -341,19 +382,19 @@ C %*% inv_C
 ### Precision Matrix $\times$ Correlation Matrix
 
 ```{r}
-hmatrix <- inv_C %*% C
-hmatrix
+mult_mat <- precision_mat %*% corr_mat
+mult_mat
 ```
 
 ### LU Decomposition
 
 ```{r}
-hlu <-lu.decomposition(hmatrix)
+lu_mult_mat <-lu.decomposition(mult_mat)
 
-hlu
+lu_mult_mat
 
 #proof
-hlu$L%*%hlu$U
+lu_mult_mat$L %*% lu_mult_mat$U
 ```
 
 
@@ -366,6 +407,9 @@ Many times, it makes sense to fit a closed form distribution to data.  Select a 
 The variable I will use is `GrLivArea`.
 `
 ```{r}
+#no need to scale as this is the min
+min(train_data$GrLivArea)
+
 # fit exponential pdf
 fit <- fitdistr(train_data$GrLivArea, densfun = "exponential")
 
@@ -376,18 +420,28 @@ lambda <- fit$estimate
 exp_hist <- rexp(1000, lambda)
 
 # compare histograms
-ggplot(train_data, aes(x = GrLivArea)) + geom_histogram()
-ggplot()+ aes(exp_hist) + geom_histogram()
+G1 <- ggplot(train_data, aes(x = GrLivArea)) + geom_histogram(fill = "white", col = "black")
+G2 <- ggplot()+ aes(exp_hist) + geom_histogram(fill = "white", col = "black") + xlab("Exp_GrLivArea")
 
-qexp(0.05,rate=lambda) ## 5th percentile
-qexp(0.95,rate=lambda)## 95th percentile
+grid.arrange(G1, G2, ncol= 2)
+
+```
+
+The exponential shifts the estimates further to the left with an even longer tail to the right (more spread) compared to the original data. 
+
+```{r}
+
+qexp(c(0.05, 0.95),rate=lambda) ## 5th and 95th percentile
 
 #0.95 confidence interval
 CI(train_data$GrLivArea, ci=0.95)
 
+# 5th and 95th percentile of empircal data
+quantile(train_data$GrLivArea, c(0.05, 0.95))
+
 ```
 
-With 95% confidence, the mean of **GrLivArea** is between `1488.487` and `1542.440`. The exponential shifts the estimates further to the left with an even longer tail to the right (more spread) compared to the original data. In this case the exponential model would not be a good fit for this data. When looking at he confidence interval for the original data, it does not contain 95% of the data in the exponential model.
+Based on the results above, at 95% confidence the exponential model would not be a good fit for this data. When looking at the confidence interval for the original data, it does not contain 95% of the data in the exponential model.
 
 
 ***
@@ -409,13 +463,14 @@ train_data <- complete(mice(data = train_data, m = 1, method = "mean"))
 ### Original Model
 
 ```{r}
-predSales.lm <- lm(SalePrice ~ LotArea + OverallQual + YearBuilt + TotalBsmtSF + X1stFlrSF + X2ndFlrSF + GrLivArea + FullBath + BedroomAbvGr + KitchenAbvGr + TotRmsAbvGrd + GarageCars, data = train_data)
+
+predSales.lm <- lm(SalePrice ~ MSSubClass +  LotArea + YearBuilt + YearRemodAdd + TotalBsmtSF + GrLivArea + FullBath + BedroomAbvGr + KitchenAbvGr, data = train_data)
 
 summary(predSales.lm)
 
 ```
 
-### Building Model
+### Final Model
 
 #### Predictors with low significance to the model are removed manually as shown below step-by-step with the `update` function.
 
@@ -426,16 +481,8 @@ predSales.lm <- update(predSales.lm, .~. - FullBath, data = train_data)
 summary(predSales.lm)
 ```
 
-### Final Model
 
-Removing `GrLivArea`...
-
-```{r}
-predSales.lm <- update(predSales.lm, .~. - GrLivArea, data = train_data)
-summary(predSales.lm)
-```
-
-This model is okay. The p-value is quite small which indicates significance. According to the $R^2$, the model explains `78.47`% variation of observed values around the mean. This is good. The p-value of the `F-statistic` `532.6` for *DF 10 and 1449* is extremely small which implies that removing the insignificant variables gave us a chance to improve the fit of the model significantly.
+This model is okay. The p-value is quite small which indicates significance. According to the $Adjusted \ R^2$, the model explains `73.68`% variation of observed values around the mean. This is good. The p-value of the `F-statistic` `511.6` for *DF 8 and 1451* is extremely small which implies that removing variables like `FullBath` gave us a chance to improve the fit of the model significantly.
 
 
 
@@ -450,7 +497,7 @@ plot(predSales.lm, 1)
 
 ```
 
-The residuals have a curved pattern which shows a small degree of non-linearity. This is most likely because we did not normalize our data. If you look at the second plot you'll see that there are about three to four extreme values or outliers far above and below the line or far from the model which means that the model did not capture those data points. If we delete them, the model could improve.
+The residuals have a curved pattern which shows a small degree of non-linearity. This could be because we did not normalize our data. If you look at the second plot you'll see that there are about three to four extreme values or outliers far above and below the line or far from the model which means that the model did not capture those data points. If we delete them, the model could improve.
 
 ```{r}
 ggplot(predSales_df, aes(x=.std.resid)) + geom_histogram(aes(y=..density..), bins = 50, colour="black")+
@@ -479,23 +526,35 @@ Scale location plot indicates spread of points across predicted values range. A 
 plot(predSales.lm, 4)
 ```
 
-This plot, also known as Cook’s distance, tells us which points have the greatest influence on the regression (leverage points). We see that observations 524, 1183 and 1299 have the greatest influence on the model. Perhaps, if we were to remove those outliers our model would be more normal.
+This plot, also known as Cook’s distance, tells us which points have the greatest influence on the regression (leverage points). We see that observations 524, 692 and 1299 have the greatest influence on the model. Perhaps, if we were to remove those outliers our model would be more normal.
 
 
 ### Predict Model
 
 ```{r}
-mypred <- predict(predSales.lm, subset(test_data, select = c(LotArea, OverallQual, YearBuilt, TotalBsmtSF, X1stFlrSF, X2ndFlrSF, BedroomAbvGr, KitchenAbvGr, TotRmsAbvGrd, GarageCars)))
+
+mypred <- predict(predSales.lm, subset(test_data, select = c(MSSubClass, LotArea, YearBuilt, TotalBsmtSF, YearRemodAdd, GrLivArea, BedroomAbvGr, KitchenAbvGr)))
 
 kaggle_pred <- data.frame(cbind(test_data$Id, mypred))
 colnames(kaggle_pred) <- c("ID", "SalePrice")
+kaggle_pred[is.na(kaggle_pred)] <- 0
 
 write.csv(kaggle_pred, file = "PredSub1.csv", row.names = F) #write predictions to file
+
 ```
 
-[Predictions](https://github.com/javernw/DATA605-Computational-Mathematics/blob/master/PredSub1.csv)
+#### [Predictions](https://github.com/javernw/DATA605-Computational-Mathematics/blob/master/PredSub1.csv)
+```{r}
 
-#### My username is **javernw** and score is `0.48643`
+kable(head(kaggle_pred, 10)) %>% kable_styling(bootstrap_options = c("striped", "condensed", "responsive"), full_width = F)
+```
+
+
+#### My username is **javernw** and score is `0.19039`
+
+#### The code to this assignment can be found on [MY GITHUB](https://github.com/javernw/DATA605-Computational-Mathematics/blob/master/JWilsonFinal_Project.Rmd)
+
+#### [Link to Youtube presentation](https://youtu.be/iprXrBly4lo)
 
 
 
